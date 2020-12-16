@@ -6,6 +6,7 @@
 #include "display.h"
 #include "plot.h"
 #include "util.h"
+#include "opts.h"
 
 static void
 print_usage(FILE *f)
@@ -135,11 +136,11 @@ set_fixed_plot_bounds(char *s, struct plot *p)
 
 	p->fixed_bounds = 1;
 
-	if (parse_next_num(&s, &l) && (l < MAX_HEIGHT && l > 0)) {
+	if (parse_next_num(&s, &l) && (l <= MAX_HEIGHT && l > 0)) {
 		p->bounds.min = l;
 	}
 
-	if (parse_next_num(&s, &l) && (l < MAX_HEIGHT && l > 0)) {
+	if (parse_next_num(&s, &l) && (l <= MAX_HEIGHT && l > 0)) {
 		p->bounds.max = l;
 	}
 
