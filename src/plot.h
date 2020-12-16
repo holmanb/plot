@@ -9,8 +9,8 @@
 #define INBUF 512
 #define CHARBUF 31
 #define MAX_DATA 32
-#define MAX_WIDTH 256
-#define MAX_HEIGHT 256
+#define MAX_WIDTH 512
+#define MAX_HEIGHT 512
 
 enum plot_charset {
 	PCUNICODE = 0,
@@ -84,6 +84,11 @@ struct input {
 	size_t size;
 };
 
+struct plot_bounds {
+	double max;
+	double min;
+};
+
 struct plot_data {
 	double data[MAX_WIDTH];
 	size_t len;
@@ -111,7 +116,10 @@ struct plot {
 	int follow;
 	int color;
 	int merge_plot_peices;
+	int fixed_bounds;
+	struct plot_bounds bounds;
 };
+
 
 void plot_init(struct plot *plot);
 void plot_add(struct plot *plot, FILE *f, int color);

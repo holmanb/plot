@@ -17,6 +17,7 @@ print_usage(FILE *f)
 		"  -i <filename>|- - specify a data source\n"
 		"  -a <n> - average n inputs per data point\n"
 		"  -d [width]:[height] - set plot dimensions\n"
+		"  -b [min]:[max] - set fixed plot bounds\n"
 		"  -x [every]:[offset]:[mod]:[side]:[color] - set x label format\n"
 		"  -y [width]:[prec]:[side] - set y label format\n"
 		"  -c <color> - set color of next data source\n"
@@ -130,6 +131,23 @@ set_plot_dimensions(char *s, struct plot *p)
 }
 
 static void
+set_fixed_plot_bounds(char *s, struct plot *p)
+{
+	long l;
+
+	p->fixed_bounds = 1;
+
+	if (parse_next_num(&s, &l) && (l < MAX_HEIGHT && l > 0)) {
+		p->bounds.min = l;
+	}
+
+	if (parse_next_num(&s, &l) && (l < MAX_HEIGHT && l > 0)) {
+		p->bounds.max = l;
+	}
+
+}
+
+static void
 add_data_from_file(char *filename, struct plot *p, int color)
 {
 	FILE *f = (strcmp(filename, "-") == 0) ? stdin : fopen(optarg, "r");
@@ -170,13 +188,16 @@ parse_opts(struct plot *p, int argc, char **argv)
 	char opt;
 	int lc = 0;
 
-	while ((opt = getopt(argc, argv, "a:c:d:fhi:ms:S:x:y:")) != -1) {
+	while ((opt = getopt(argc, argv, "a:b:c:d:fhi:ms:S:x:y:")) != -1) {
 		switch (opt) {
 		case 'a':
 			if ((p->average = strtol(optarg, NULL, 10)) < 0) {
 				fprintf(stderr, "invalid average arg\n");
 				exit(EXIT_FAILURE);
 			}
+			break;
+		case 'b':
+			set_fixed_plot_bounds(optarg, p);
 			break;
 		case 'd':
 			set_plot_dimensions(optarg, p);
