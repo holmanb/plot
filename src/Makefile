@@ -28,7 +28,7 @@ clean:
 
 .PHONY: test
 test:
-	seq 1 500 | shuf |  ./$(EXE) -f  -b 1:2048
+	seq 1 500 | shuf |  ./$(EXE) -f  -b 1:512
 
 .PHONY: check
 check:

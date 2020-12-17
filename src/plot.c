@@ -42,19 +42,19 @@ plot_init(struct plot *plot)
 	int i;
 	double *d;
 	plot->labels = ccalloc(MAX_HEIGHT, sizeof(plot->labels));
-//	plot->data = ccalloc(MAX_DATA, sizeof(plot->data));
 
-	/*
+
+
 	for(i=0; i<MAX_DATA ; i++){
-		//d = ccalloc(MAX_DATA, sizeof(double));
 		plot->data[i].data = ccalloc(MAX_WIDTH, sizeof(double));
 	}
+
+	/*
 	long **l;
-//	l = ccalloc(MAX_DATA, sizeof(long*));
+	l = ccalloc(MAX_DATA, sizeof(long*));
 	for(i=0; i < MAX_DATA; i++){
-//		l[i] = ccalloc(MAX_WIDTH, sizeof(long));
+		l[i] = ccalloc(MAX_WIDTH, sizeof(long));
 	}
-//plot->normalized[i]
 */
 	
 	plot->x_label.side = 1;

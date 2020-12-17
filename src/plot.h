@@ -90,7 +90,7 @@ struct plot_bounds {
 };
 
 struct plot_data {
-	double data[MAX_WIDTH];  // double data[MAX_WIDTH];
+	double *data;  // double data[MAX_WIDTH];
 	size_t len;
 	unsigned int color;
 	struct input src;
