@@ -6,18 +6,63 @@
 #include "input.h"
 #include "plot.h"
 #include "util.h"
+#include "alloc.h"
+#include "debug.h"
 
 #define PLOT_DEFAULT_BOUND 8
+#define PLOT_STACK 0
 
+
+/*
+struct plot {
+	struct x_label x_label;
+	struct y_label y_label;
+	struct canvas_elem canvas[MAX_WIDTH][MAX_HEIGHT];
+	long normalized[MAX_DATA][MAX_WIDTH];
+	double labels[MAX_HEIGHT];
+	struct plot_data data[MAX_DATA];
+	enum plot_charset charset;
+	size_t datasets;
+	unsigned int height;
+	unsigned int width;
+	long follow_rate;
+	long average;
+	int follow;
+	int color;
+	int merge_plot_peices;
+	int fixed_bounds;
+	struct plot_bounds bounds;
+};
+*/
 
 void
 plot_init(struct plot *plot)
 {
+
+	int i;
+	double *d;
+	plot->labels = ccalloc(MAX_HEIGHT, sizeof(plot->labels));
+//	plot->data = ccalloc(MAX_DATA, sizeof(plot->data));
+
+	/*
+	for(i=0; i<MAX_DATA ; i++){
+		//d = ccalloc(MAX_DATA, sizeof(double));
+		plot->data[i].data = ccalloc(MAX_WIDTH, sizeof(double));
+	}
+	long **l;
+//	l = ccalloc(MAX_DATA, sizeof(long*));
+	for(i=0; i < MAX_DATA; i++){
+//		l[i] = ccalloc(MAX_WIDTH, sizeof(long));
+	}
+//plot->normalized[i]
+*/
+	
 	plot->x_label.side = 1;
 
 	plot->y_label.width = 11;
 	plot->y_label.prec = 2;
 	plot->y_label.side = 1;
+	
 
 	plot->charset = PCUNICODE;
 	plot->height = 24;
@@ -155,4 +200,5 @@ plot_destroy(struct plot *plot)
 			fclose(plot->data[i].src.src);
 		}
 	}
+	free(plot->labels);
 }

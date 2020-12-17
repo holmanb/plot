@@ -90,7 +90,7 @@ struct plot_bounds {
 };
 
 struct plot_data {
-	double data[MAX_WIDTH];
+	double data[MAX_WIDTH];  // double data[MAX_WIDTH];
 	size_t len;
 	unsigned int color;
 	struct input src;
@@ -104,8 +104,8 @@ struct plot {
 	struct x_label x_label;
 	struct y_label y_label;
 	struct canvas_elem canvas[MAX_WIDTH][MAX_HEIGHT];
-	long normalized[MAX_DATA][MAX_WIDTH];
-	double labels[MAX_HEIGHT];
+	long normalized[MAX_DATA][MAX_WIDTH]; // long normalized[MAX_DATA][MAX_WIDTH];
+	double *labels;
 	struct plot_data data[MAX_DATA];
 	enum plot_charset charset;
 	size_t datasets;

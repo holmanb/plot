@@ -1,5 +1,5 @@
 CC = gcc
-CC_FLAGS = -g -pedantic -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -Wreturn-type -lm
+CC_FLAGS = -g -pedantic -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -Wreturn-type -lm -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-usage
 SHARED_FLAGS = -shared
 SUBDIRS = deps/plot/src
 
@@ -32,9 +32,11 @@ test:
 
 .PHONY: check
 check:
-		valgrind --leak-check=yes --track-origins=yes ./$(EXE)
+	seq 500 | shuf > /tmp/tmp.42
+	valgrind --leak-check=yes --track-origins=yes --max-stackframe=4343808 ./$(EXE) -f -b 0:512 -i /tmp/tmp.42
 
 .PHONY: check
 gdb:
-		gdb $(EXE)
+	seq 500 | shuf > /tmp/tmp.42
+	gdb  --args $(EXE)  -f -b 0:512 -i /tmp/tmp.42
 
