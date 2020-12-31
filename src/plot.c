@@ -12,61 +12,154 @@
 #define PLOT_DEFAULT_BOUND 8
 #define PLOT_STACK 0
 
+struct y_label * init_y_label(void){
+	struct y_label *y = NULL;
+	y = ccalloc(1, sizeof(struct y_label));
+	y->r_fmt = ccalloc(CHARBUF + 1, sizeof(char));
+	y->l_fmt = ccalloc(CHARBUF + 1, sizeof(char));
+	return y;
+}
 
-/*
-struct plot {
-	struct x_label x_label;
-	struct y_label y_label;
-	struct canvas_elem canvas[MAX_WIDTH][MAX_HEIGHT];
-	long normalized[MAX_DATA][MAX_WIDTH];
-	double labels[MAX_HEIGHT];
-	struct plot_data data[MAX_DATA];
-	enum plot_charset charset;
-	size_t datasets;
-	unsigned int height;
-	unsigned int width;
-	long follow_rate;
-	long average;
-	int follow;
-	int color;
-	int merge_plot_peices;
-	int fixed_bounds;
-	struct plot_bounds bounds;
-};
-*/
+void free_y_label(struct y_label *y){
+	free(y->r_fmt);
+	free(y->l_fmt);
+	free(y);
+}
 
-void
-plot_init(struct plot *plot)
+struct x_label * init_x_label(void){
+	struct x_label *x = NULL;
+	x = ccalloc(1, sizeof(struct x_label));
+	x->label = ccalloc(CHARBUF + 1, sizeof(char));
+	return x;
+}
+
+void free_x_label(struct x_label *x){
+	free(x->label);
+	free(x);
+}
+
+struct input * init_input(void){
+	struct input *i = ccalloc(1, sizeof(struct input));
+	i->buf = ccalloc(INBUF, sizeof(char));
+	return i;
+}
+
+void free_input(struct input *i){
+	free(i->buf);
+	free(i);
+}
+
+struct plot_bounds * init_plot_bounds(void){
+	return ccalloc(1, sizeof(struct plot_bounds));
+}
+
+void free_plot_bounds(struct plot_bounds *p){
+	free(p);
+}
+
+struct plot_data * init_plot_data(void){
+	struct plot_data * p = NULL;
+	p = ccalloc(1, sizeof(struct plot_data));
+	p->data = ccalloc(MAX_WIDTH, sizeof(double));
+	p->src = init_input();
+	p->avg = ccalloc(1, sizeof(p->avg));
+	return p;
+}
+
+void free_plot_data(struct plot_data *p){
+	free(p->avg);
+	free(p->data);
+	free_input(p->src);
+	free(p);
+}
+
+struct plot * init_plot_z(void){
+	struct plot *p = NULL;
+	int i,j;
+	p = ccalloc(1, sizeof (struct plot));
+
+	p->x_label = init_x_label();
+	p->y_label = init_y_label();
+
+
+	//TODO make this an init/free pair
+	p->canvas = ccalloc(MAX_HEIGHT, sizeof (struct canvas_elem *));
+	for(i=0; i<MAX_HEIGHT; i++){
+		p->canvas[i] = ccalloc(MAX_WIDTH, sizeof (struct canvas_elem *));
+		for(j=0; j<MAX_WIDTH; j++){
+			p->canvas[i][j] = ccalloc(1, sizeof (struct canvas_elem));
+		}
+	}
+
+	p->bounds = init_plot_bounds();
+
+	//TODO make this an init/free pair
+	p->data = ccalloc(MAX_DATA, sizeof (struct plot_data *));
+	for(i=0; i<MAX_DATA; i++){
+		p->data[i] = init_plot_data();
+	}
+
+	//TODO make this an init/free pair
+	p->normalized =  ccalloc(MAX_WIDTH, sizeof(long *));
+	for(i=0; i<MAX_WIDTH; i++){
+		p->normalized[i] = ccalloc(MAX_DATA, sizeof(long));
+	}
+
+	p->labels = ccalloc(MAX_HEIGHT, sizeof(double));
+
+	return p;
+}
+
+void free_plot(struct plot *p){
+	int i,j;
+	//free_plot_data(*p->data);
+	free_y_label(p->y_label);
+	free_x_label(p->x_label);
+
+	//TODO make this an init/free pair
+	for(i=0; i<MAX_HEIGHT; i++){
+		for(j=0; j<MAX_WIDTH; j++){
+			free(p->canvas[i][j]);
+		}
+		free(p->canvas[i]);
+	}
+	free(p->canvas);
+
+	free_plot_bounds(p->bounds);
+
+
+	//TODO make this an init/free pair
+	for(i=0; i<MAX_DATA; i++){
+	//	free(p->data[i]);
+		free_plot_data(p->data[i]);
+	}
+	free(p->data);
+
+
+	//TODO make this an init/free pair
+	for(i=0; i<MAX_WIDTH; i++){
+	//	free(p->normalized[i]);
+	}
+	free(p->normalized);
+
+	free(p->labels);
+	free(p);
+}
+
+struct plot * plot_init(void)
 {
+	struct plot * plot = NULL;
+	plot = init_plot_z();
+	plot->x_label->side = 1;
+	plot->y_label->width = 11;
+	plot->y_label->prec = 2;
+	plot->y_label->side = 1;
 
-	int i;
-	double *d;
-	plot->labels = ccalloc(MAX_HEIGHT, sizeof(plot->labels));
-
-
-
-	for(i=0; i<MAX_DATA ; i++){
-		plot->data[i].data = ccalloc(MAX_WIDTH, sizeof(double));
-	}
-
-	/*
-	long **l;
-	l = ccalloc(MAX_DATA, sizeof(long*));
-	for(i=0; i < MAX_DATA; i++){
-		l[i] = ccalloc(MAX_WIDTH, sizeof(long));
-	}
-*/
-	
-	plot->x_label.side = 1;
-
-	plot->y_label.width = 11;
-	plot->y_label.prec = 2;
-	plot->y_label.side = 1;
-	
 
 	plot->charset = PCUNICODE;
 	plot->height = 24;
 	plot->width = 80;
+	plot->follow = 0;
 
 	plot->follow_rate = 100;
 	plot->average = 1;
@@ -74,15 +167,15 @@ plot_init(struct plot *plot)
 	plot->datasets = 0;
 
 	plot->fixed_bounds = 0;
-
+	return plot;
 }
 
 static void
 plot_data_init(struct plot_data *pd, FILE *src, int color)
 {
-	pd->src.src = src;
-	pd->src.rem = 0;
-	pd->src.size = 0;
+	pd->src->src = src;
+	pd->src->rem = 0;
+	pd->src->size = 0;
 	pd->len = 0;
 	pd->color = color;
 }
@@ -94,32 +187,32 @@ plot_add(struct plot *plot, FILE *f, int color)
 		plot->color = 1;
 	}
 
-	plot_data_init(&plot->data[plot->datasets], f, color);
+	plot_data_init(plot->data[plot->datasets], f, color);
 	plot->datasets++;
 }
 
-static struct plot_bounds
-plot_data_get_bounds(size_t len, struct plot_data *pda)
+static struct plot_bounds *
+plot_data_get_bounds(size_t len, struct plot_data **pda)
 {
 	size_t i, j;
-	struct plot_bounds bounds;
+	struct plot_bounds *bounds = ccalloc(1, sizeof(struct plot_bounds));
 
-	bounds.max = -1 * DBL_MAX;
-	bounds.min = DBL_MAX;
+	bounds->max = -1 * DBL_MAX;
+	bounds->min = DBL_MAX;
 
 	for (j = 0; j < len; j++) {
-		for (i = 0; i < pda[j].len; i++) {
-			if (pda[j].data[i] > bounds.max) {
-				bounds.max = pda[j].data[i];
+		for (i = 0; i < pda[j]->len; i++) {
+			if (pda[j]->data[i] > bounds->max) {
+				bounds->max = pda[j]->data[i];
 			}
-			if (pda[j].data[i] < bounds.min) {
-				bounds.min = pda[j].data[i];
+			if (pda[j]->data[i] < bounds->min) {
+				bounds->min = pda[j]->data[i];
 			}
 		}
 	}
 
-	if (bounds.max == bounds.min) {
-		bounds.max += PLOT_DEFAULT_BOUND;
+	if (bounds->max == bounds->min) {
+		bounds->max += PLOT_DEFAULT_BOUND;
 	}
 
 	return bounds;
@@ -148,11 +241,11 @@ plot_normalize_data(struct plot *p, struct plot_bounds *b)
 	for (j = 0; j < p->datasets; j++) {
 		//d = ;
 
-		p->normalized[j][0] = p->data[j].len + 2;
-		p->normalized[j][1] = p->data[j].color;
+		p->normalized[j][0] = p->data[j]->len + 2;
+		p->normalized[j][1] = p->data[j]->color;
 		for (i = 2; i < (size_t)p->normalized[j][0]; i++) {
 			p->normalized[j][i] = lround(
-				(p->data[j].data[i - 2] - b->min) * ratio);
+				(p->data[j]->data[i - 2] - b->min) * ratio);
 		}
 	}
 }
@@ -164,7 +257,7 @@ plot_plot(struct plot *plot)
 	int no_data = 1;
 
 	for (i = 0; i < plot->datasets; i++) {
-		if (plot->data[i].len > 0) {
+		if (plot->data[i]->len > 0) {
 			no_data = 0;
 			break;
 		}
@@ -181,9 +274,9 @@ plot_plot(struct plot *plot)
 		plot->bounds = plot_data_get_bounds(plot->datasets, plot->data);
 	}
 
-	plot_make_labels(plot, &plot->bounds);
+	plot_make_labels(plot, plot->bounds);
 
-	plot_normalize_data(plot, &plot->bounds);
+	plot_normalize_data(plot, plot->bounds);
 
 	plot_display(plot);
 
@@ -196,9 +289,9 @@ plot_destroy(struct plot *plot)
 	size_t i;
 
 	for (i = 0; i < plot->datasets; i++) {
-		if (plot->data[i].src.src != NULL) {
-			fclose(plot->data[i].src.src);
+		if (plot->data[i]->src->src != NULL) {
+			fclose(plot->data[i]->src->src);
 		}
 	}
-	free(plot->labels);
+	free_plot(plot);
 }

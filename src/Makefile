@@ -1,5 +1,5 @@
 CC = gcc
-CC_FLAGS = -g -pedantic -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -Wreturn-type -lm -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-usage
+CC_FLAGS = -g -pedantic -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Wshadow  -Wreturn-type -lm -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-usage #-Wconversion
 SHARED_FLAGS = -shared
 SUBDIRS = deps/plot/src
 
@@ -30,13 +30,17 @@ clean:
 test:
 	seq 1 500 | shuf |  ./$(EXE) -f  -b 1:512
 
+.PHONY: test_stress
+test_stress:
+	while [ 1 == 1 ];do awk 'BEGIN{srand();printf("%d",512*rand())}'; sleep .01; done | ./plot -f
+
 .PHONY: check
 check:
 	seq 500 | shuf > /tmp/tmp.42
-	valgrind --leak-check=yes --track-origins=yes --max-stackframe=4343808 ./$(EXE) -f -b 0:512 -i /tmp/tmp.42
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --main-stacksize=80000000 --max-stackframe=4343808 ./$(EXE) -f -b 0:512 -i /tmp/tmp.42
 
 .PHONY: check
 gdb:
 	seq 500 | shuf > /tmp/tmp.42
-	gdb  --args $(EXE)  -f -b 0:512 -i /tmp/tmp.42
+	gdb  --args $(EXE)  -b 0:512 -i /tmp/tmp.42
 
